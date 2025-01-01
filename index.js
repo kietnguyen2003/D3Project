@@ -167,8 +167,6 @@ export async function drawBarChart(data, selector, key, title) {
     .nice()
     .range([height, 0]);
 
-  data.sort((a, b) => b[key] - a[key]);
-
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x))
@@ -178,49 +176,26 @@ export async function drawBarChart(data, selector, key, title) {
 
   svg.append("g").call(d3.axisLeft(y));
 
-  const tooltip = d3
-    .select(selector)
-    .append("div")
-    .style("position", "absolute")
-    .style("background-color", "white")
-    .style("border", "1px solid #ccc")
-    .style("padding", "10px")
-    .style("border-radius", "5px")
-    .style("box-shadow", "0px 0px 10px rgba(0,0,0,0.1)")
-    .style("pointer-events", "none")
-    .style("opacity", 0);
-
   svg.selectAll(".bar")
     .data(data)
     .join("rect")
     .attr("class", "bar")
     .attr("x", d => x(d.Brand))
-    .attr("y", height) // Bắt đầu từ đáy
+    .attr("y", height)
     .attr("width", x.bandwidth())
-    .attr("height", 0) // Chiều cao ban đầu là 0
+    .attr("height", 0)
     .attr("fill", "steelblue")
-    .on("mouseover", (event, d) => {
-      tooltip
-        .style("opacity", 1)
-        .html(
-          `<strong>Brand:</strong> ${d.Brand}<br>
-           <strong>${key}:</strong> ${d[key].toLocaleString()}`
-        )
-        .style("left", `${event.pageX + 10}px`)
-        .style("top", `${event.pageY - 30}px`);
-    })
-    .on("mousemove", event => {
-      tooltip
-        .style("left", `${event.pageX + 10}px`)
-        .style("top", `${event.pageY - 30}px`);
-    })
-    .on("mouseout", () => {
-      tooltip.style("opacity", 0);
-    })
-    .transition() 
-    .duration(1000) 
+    .transition()
+    .duration(1000)
     .attr("y", d => y(d[key]))
     .attr("height", d => height - y(d[key]));
+
+  // Add titles to bars
+  svg.selectAll(".bar")
+    .data(data)
+    .join("rect")
+    .append("title") // Add title to each bar
+    .text(d => `${d.Brand}: ${d[key].toLocaleString()}`);
 
   svg.append("text")
     .attr("x", width / 2)
@@ -230,3 +205,113 @@ export async function drawBarChart(data, selector, key, title) {
     .style("font-weight", "bold")
     .text(title);
 }
+
+
+
+export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle, lineTitle) {
+  const margin = { top: 50, right: 80, bottom: 50, left: 80 };
+  const width = 1000 - margin.left - margin.right;
+  const height = 500 - margin.top - margin.bottom;
+
+  d3.select(selector).selectAll("*").remove();
+
+  const svg = d3.select(selector)
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  const x = d3.scaleBand()
+    .domain(data.map(d => d.Brand))
+    .range([0, width])
+    .padding(0.1);
+
+  const yBar = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d[barKey])])
+    .nice()
+    .range([height, 0]);
+
+  const yLine = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d[lineKey])])
+    .nice()
+    .range([height, 0]);
+
+  svg.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x))
+    .selectAll("text")
+    .attr("transform", "rotate(-45)")
+    .style("text-anchor", "end");
+
+  svg.append("g").call(d3.axisLeft(yBar));
+  svg.append("g")
+    .attr("transform", `translate(${width},0)`)
+    .call(d3.axisRight(yLine));
+
+  // Add bars
+  svg.selectAll(".bar")
+    .data(data)
+    .join("rect")
+    .attr("class", "bar")
+    .attr("x", d => x(d.Brand))
+    .attr("y", height)
+    .attr("width", x.bandwidth())
+    .attr("height", 0)
+    .attr("fill", "steelblue")
+    .transition()
+    .duration(1000)
+    .attr("y", d => yBar(d[barKey]))
+    .attr("height", d => height - yBar(d[barKey]));
+
+  // Add titles to bars
+  svg.selectAll(".bar")
+    .data(data)
+    .join("rect")
+    .append("title") // Add title to each bar
+    .text(d => `${d.Brand} - ${barKey}: ${d[barKey].toLocaleString()}`);
+
+  // Add line
+  const line = d3.line()
+    .x(d => x(d.Brand) + x.bandwidth() / 2)
+    .y(d => yLine(d[lineKey]));
+
+  const path = svg.append("path")
+    .datum(data)
+    .attr("fill", "none")
+    .attr("stroke", "red")
+    .attr("stroke-width", 2)
+    .attr("d", line);
+
+  // Add title to points on the line
+  svg.selectAll(".line-point")
+    .data(data)
+    .join("circle")
+    .attr("class", "line-point")
+    .attr("cx", d => x(d.Brand) + x.bandwidth() / 2)
+    .attr("cy", d => yLine(d[lineKey]))
+    .attr("r", 4)
+    .attr("fill", "red")
+    .append("title") // Add title to each point on the line
+    .text(d => `${d.Brand} - ${lineKey}: ${d[lineKey].toLocaleString()}`);
+
+  svg.append("text")
+    .attr("x", width / 2)
+    .attr("y", -20)
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("font-weight", "bold")
+    .text(barTitle);
+
+  svg.append("text")
+    .attr("x", width + 20)
+    .attr("y", -20)
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("font-weight", "bold")
+    .text(lineTitle);
+}
+
+
+
+
