@@ -1,19 +1,52 @@
-.container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+body {
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f9fa;
+  color: #333;
 }
 
-.idiom {
-  border: 1px solid #ccc;
+.container {
+  max-width: 1200px;
+  margin: 20px auto;
   padding: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.title {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #007bff;
+  font-weight: bold;
+}
+
+select {
+  display: block;
+  width: 200px;
+  padding: 8px;
+  margin-bottom: 5px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
   border-radius: 5px;
+  background-color: #f1f1f1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+select:focus {
+  outline: none;
+  border-color: #007bff;
+  background-color: #e9ecef;
 }
 
 .chart {
-
-  background-color: #f9f9f9;
-  margin-bottom: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  height: 400px;
+  margin-bottom: 20px;
 }
 
 .chart#chart1 {
@@ -22,6 +55,69 @@
 }
 
 .comment {
-  padding: 5px;
-  background-color: #f1f1f1;
+  padding: 15px;
+  background-color: #e9ecef;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.comment label {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #495057;
+  margin-bottom: 10px;
+}
+
+.comment .nhanxet {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: #495057;
+  padding: 10px;
+  border: 1px dashed #ced4da;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+}
+
+.idiom {
+  margin-bottom: 30px;
+}
+
+.bar {
+  transition: fill 0.3s ease;
+}
+
+.bar:hover {
+  fill: #007bff;
+  cursor: pointer;
+}
+
+div.tooltip {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
+  z-index: 10;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .chart {
+    height: 300px;
+  }
+
+  select {
+    width: 100%;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
 }

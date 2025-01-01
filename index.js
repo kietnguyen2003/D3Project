@@ -84,68 +84,70 @@ export async function drawTreemap(data, selector) {
       .style("fill", "white")
       .text(d => d.data.Reviews.toLocaleString());
 
-  // Add color legend at the top
-  const legendWidth = 300;
-  const legendHeight = 20;
+  // Add color legend to the right (vertical gradient)
+const legendHeight = 300; // Chiều cao của chú thích
+const legendWidth = 20;   // Chiều rộng của chú thích
 
-  const legend = svg.append("g")
-      .attr("transform", `translate(${(width - legendWidth) +350}, 20)`);
+const legend = svg.append("g")
+    .attr("transform", `translate(${width + 50}, ${(height - legendHeight) / 2})`); // Đặt ở bên phải biểu đồ
 
-  // Gradient
-  const gradient = svg.append("defs")
-      .append("linearGradient")
-      .attr("id", "legend-gradient")
-      .attr("x1", "0%")
-      .attr("x2", "100%")
-      .attr("y1", "0%")
-      .attr("y2", "0%");
+// Gradient
+const gradient = svg.append("defs")
+    .append("linearGradient")
+    .attr("id", "legend-gradient")
+    .attr("x1", "0%")
+    .attr("x2", "0%")
+    .attr("y1", "100%") // Gradient từ trên xuống
+    .attr("y2", "0%");
 
-  gradient.append("stop")
-      .attr("offset", "0%")
-      .attr("stop-color", colorScale(3)); // Start color (lowest Stars)
+gradient.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", colorScale(3)); // Start color (lowest Stars)
 
-  gradient.append("stop")
-      .attr("offset", "100%")
-      .attr("stop-color", colorScale(5)); // End color (highest Stars)
+gradient.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", colorScale(5)); // End color (highest Stars)
 
-  // Add legend rectangle
-  legend.append("rect")
-      .attr("x", 0)
-      .attr("y", 0)
-      .attr("width", legendWidth)
-      .attr("height", legendHeight)
-      .style("fill", "url(#legend-gradient)");
+// Add legend rectangle
+legend.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", legendWidth)
+    .attr("height", legendHeight)
+    .style("fill", "url(#legend-gradient)");
 
-  // Add legend labels
-  legend.append("text")
-      .attr("x", 0)
-      .attr("y", legendHeight + 15)
-      .style("text-anchor", "middle")
-      .style("font-size", "12px")
-      .text("3");
+// Add legend labels
+legend.append("text")
+    .attr("x", legendWidth + 10) // Đặt bên phải chú thích
+    .attr("y", 5)
+    .style("text-anchor", "start")
+    .style("font-size", "12px")
+    .text("5"); // Giá trị cao nhất
 
-  legend.append("text")
-      .attr("x", legendWidth)
-      .attr("y", legendHeight + 15)
-      .style("text-anchor", "middle")
-      .style("font-size", "12px")
-      .text("5");
+legend.append("text")
+    .attr("x", legendWidth + 10) // Đặt bên phải chú thích
+    .attr("y", legendHeight)
+    .style("text-anchor", "start")
+    .style("font-size", "12px")
+    .text("3"); // Giá trị thấp nhất
 
-  legend.append("text")
-      .attr("x", legendWidth / 2)
-      .attr("y", legendHeight + 15)
-      .style("text-anchor", "middle")
-      .style("font-size", "12px")
-      .style("font-weight", "bold")
-      .text("Stars");
+legend.append("text")
+    .attr("x", legendWidth + 10)
+    .attr("y", legendHeight / 2)
+    .style("text-anchor", "start")
+    .style("font-size", "12px")
+    .style("font-weight", "bold")
+    .text("Stars");
+
+
+  
 }
 
 export async function drawBarChart(data, selector, key, title) {
   const margin = { top: 50, right: 30, bottom: 50, left: 80 };
-  const width = 800 - margin.left - margin.right;
+  const width = 1000 - margin.left - margin.right;
   const height = 500 - margin.top - margin.bottom;
 
-  // Xóa biểu đồ cũ (nếu có)
   d3.select(selector).selectAll("*").remove();
 
   const svg = d3.select(selector)
@@ -165,10 +167,8 @@ export async function drawBarChart(data, selector, key, title) {
     .nice()
     .range([height, 0]);
 
-  // Sắp xếp dữ liệu giảm dần theo key
   data.sort((a, b) => b[key] - a[key]);
 
-  // Thêm trục X
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x))
@@ -176,10 +176,8 @@ export async function drawBarChart(data, selector, key, title) {
     .attr("transform", "rotate(-45)")
     .style("text-anchor", "end");
 
-  // Thêm trục Y
   svg.append("g").call(d3.axisLeft(y));
 
-  // Tạo tooltip
   const tooltip = d3
     .select(selector)
     .append("div")
@@ -192,7 +190,6 @@ export async function drawBarChart(data, selector, key, title) {
     .style("pointer-events", "none")
     .style("opacity", 0);
 
-  // Vẽ các thanh cột
   svg.selectAll(".bar")
     .data(data)
     .join("rect")
@@ -220,12 +217,11 @@ export async function drawBarChart(data, selector, key, title) {
     .on("mouseout", () => {
       tooltip.style("opacity", 0);
     })
-    .transition() // Thêm hiệu ứng chuyển đổi
-    .duration(1000) // Thời gian chuyển đổi 1 giây
+    .transition() 
+    .duration(1000) 
     .attr("y", d => y(d[key]))
     .attr("height", d => height - y(d[key]));
 
-  // Thêm tiêu đề
   svg.append("text")
     .attr("x", width / 2)
     .attr("y", -10)
