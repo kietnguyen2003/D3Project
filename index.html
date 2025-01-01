@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trực quan hóa dữ liệu</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="idiom" id="i1">
+      <select name="chart-options" id="chart-selector">
+        <option value="all">All</option>
+        <option value="rating">Rating</option>
+        <option value="reviews">Reviews</option>
+        <option value="stars">Stars</option>
+      </select>
+      <div class="chart" id="chart1"></div>
+      <div class="comment" id="comment1">
+        <label for="nhanxet">Nhận xét 1 </label>
+        <div class="nhanxet"></div>
+      </div>
+    </div>
+    <div class="idiom" id="i2">
+      <div class="chart" id="chart2"></div>
+      <div class="comment" id="comment2">
+        <label for="nhanxet">Nhận xét 2 </label>
+        <div class="nhanxet"></div>
+      </div>
+    </div>
+    <div class="idiom" id="i3">
+      <div class="chart" id="chart3"></div>
+      <div class="comment" id="comment3">
+        <label for="nhanxet">Nhận xét 3 </label>
+        <div class="nhanxet"></div>
+      </div>
+    </div>
+    <div class="idiom" id="i4">
+      <div class="chart" id="chart4"></div>
+      <div class="comment" id="comment4">
+        <label for="nhanxet">Nhận xét 4 </label>
+        <div class="nhanxet"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { drawBarChart, drawTreemap } from './index.js'; // Import các hàm vẽ
+
+    const dataPath = "data.json"; // Đường dẫn đến file JSON chứa dữ liệu
+
+    d3.json(dataPath).then(data => {
+      console.log("Dữ liệu:", data); // Kiểm tra dữ liệu
+
+      // Hàm vẽ biểu đồ dựa trên lựa chọn
+      const updateChart = (option) => {
+        // Xóa nội dung cũ trong chart1
+        d3.select("#chart1").selectAll("*").remove();
+
+        if (option === "rating") {
+          drawBarChart(data, "#chart1", "Rating", "Biểu đồ Rating");
+        } else if (option === "reviews") {
+          drawBarChart(data, "#chart1", "Reviews", "Biểu đồ Reviews");
+        } else if (option === "stars") {
+          drawBarChart(data, "#chart1", "Stars", "Biểu đồ Stars");
+        } else {
+          drawTreemap(data, "#chart1"); // Hiển thị Treemap mặc định
+        }
+      };
+
+      // Lắng nghe sự kiện thay đổi trên selector
+      d3.select("#chart-selector").on("change", function () {
+        const selectedOption = d3.select(this).property("value"); // Lấy giá trị từ selector
+        updateChart(selectedOption); // Cập nhật biểu đồ
+      });
+
+      // Hiển thị biểu đồ mặc định (Treemap)
+      updateChart("all");
+    }).catch(error => {
+      console.error("Lỗi khi đọc file JSON:", error);
+    });
+  </script>
+
+</body>
+
+</html>
