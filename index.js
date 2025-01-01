@@ -144,7 +144,7 @@ legend.append("text")
 }
 
 export async function drawBarChart(data, selector, key, title) {
-  const margin = { top: 50, right: 30, bottom: 50, left: 80 };
+  const margin = { top: 50, right: 80, bottom: 50, left: 80 };
   const width = 1000 - margin.left - margin.right;
   const height = 500 - margin.top - margin.bottom;
 
@@ -152,7 +152,7 @@ export async function drawBarChart(data, selector, key, title) {
 
   const svg = d3.select(selector)
     .append("svg")
-    .attr("width", width + margin.left + margin.right)
+    .attr("width", width + margin.left + margin.right + 100) // Thêm không gian cho bảng màu
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -167,13 +167,11 @@ export async function drawBarChart(data, selector, key, title) {
     .nice()
     .range([height, 0]);
 
-  // Tính giá trị trung bình
   const avg = d3.mean(data, d => d[key]);
 
-  // Tạo scale màu
   const colorScale = d3.scaleLinear()
     .domain([0, avg, d3.max(data, d => d[key])])
-    .range(["#fff7b0", "#ffcc00", "#b8860b"]); // Từ nhạt đến đậm (vàng)
+    .range(["#fdae61", "#ffffbf", "#2c7bb6"]); // Gradient từ vàng -> xanh nhạt -> xanh đậm
 
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
@@ -192,27 +190,25 @@ export async function drawBarChart(data, selector, key, title) {
     .attr("y", height)
     .attr("width", x.bandwidth())
     .attr("height", 0)
-    .attr("fill", d => colorScale(d[key])) // Ánh xạ giá trị với màu sắc
+    .attr("fill", d => colorScale(d[key])) // Ánh xạ màu
     .transition()
     .duration(1000)
     .attr("y", d => y(d[key]))
     .attr("height", d => height - y(d[key]));
 
-  // Add titles to bars
   svg.selectAll(".bar")
     .data(data)
     .join("rect")
-    .append("title") // Add title to each bar
+    .append("title")
     .text(d => `${d.Brand}: ${d[key].toLocaleString()}`);
 
-  // Hiển thị đường giá trị trung bình
   svg.append("line")
     .attr("x1", 0)
     .attr("x2", width)
     .attr("y1", y(avg))
     .attr("y2", y(avg))
     .attr("stroke", "red")
-    .attr("stroke-dasharray", "4") // Đường đứt nét
+    .attr("stroke-dasharray", "4")
     .attr("stroke-width", 2);
 
   svg.append("text")
@@ -230,13 +226,48 @@ export async function drawBarChart(data, selector, key, title) {
     .style("font-size", "16px")
     .style("font-weight", "bold")
     .text(title);
+
+  // Thêm bảng màu dọc
+  const legendHeight = 300;
+  const legendWidth = 20;
+
+  const legendScale = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d[key])])
+    .range([legendHeight, 0]);
+
+  const defs = svg.append("defs");
+  const gradient = defs.append("linearGradient")
+    .attr("id", "legend-gradient")
+    .attr("x1", "0%")
+    .attr("x2", "0%")
+    .attr("y1", "100%")
+    .attr("y2", "0%");
+
+  gradient.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "#fdae61"); // Màu vàng
+  gradient.append("stop")
+    .attr("offset", "50%")
+    .attr("stop-color", "#ffffbf"); // Màu xanh nhạt
+  gradient.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "#2c7bb6"); // Màu xanh đậm
+
+  const legend = svg.append("g")
+    .attr("transform", `translate(${width + 30}, 50)`);
+
+  legend.append("rect")
+    .attr("width", legendWidth)
+    .attr("height", legendHeight)
+    .style("fill", "url(#legend-gradient)");
+
+  legend.append("g")
+    .attr("transform", `translate(${legendWidth}, 0)`)
+    .call(d3.axisRight(legendScale).ticks(5));
 }
 
-
-
-
 export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle, lineTitle) {
-  const margin = { top: 50, right: 80, bottom: 50, left: 80 };
+  const margin = { top: 50, right: 100, bottom: 50, left: 80 };
   const width = 1000 - margin.left - margin.right;
   const height = 500 - margin.top - margin.bottom;
 
@@ -244,7 +275,7 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
 
   const svg = d3.select(selector)
     .append("svg")
-    .attr("width", width + margin.left + margin.right)
+    .attr("width", width + margin.left + margin.right + 200) // Thêm không gian cho bảng màu
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -264,13 +295,11 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .nice()
     .range([height, 0]);
 
-  // Tính giá trị trung bình cho barKey
   const avg = d3.mean(data, d => d[barKey]);
 
-  // Tạo scale màu cho thanh
   const colorScale = d3.scaleLinear()
     .domain([0, avg, d3.max(data, d => d[barKey])])
-    .range(["#fff7b0", "#ffcc00", "#b8860b"]); // Từ vàng nhạt đến vàng đậm
+    .range(["#fdae61", "#ffffbf", "#2c7bb6"]); // Gradient từ vàng nhạt -> xanh nhạt -> xanh đậm
 
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
@@ -293,51 +322,29 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .attr("y", height)
     .attr("width", x.bandwidth())
     .attr("height", 0)
-    .attr("fill", d => colorScale(d[barKey])) // Ánh xạ màu dựa trên giá trị barKey
+    .attr("fill", d => colorScale(d[barKey]))
     .transition()
     .duration(1000)
     .attr("y", d => yBar(d[barKey]))
     .attr("height", d => height - yBar(d[barKey]));
 
-  // Thêm title cho bars
   svg.selectAll(".bar")
     .data(data)
     .join("rect")
     .append("title")
     .text(d => `${d.Brand} - ${barKey}: ${d[barKey].toLocaleString()}`);
 
-  // Vẽ đường (line chart)
   const line = d3.line()
     .x(d => x(d.Brand) + x.bandwidth() / 2)
     .y(d => yLine(d[lineKey]));
 
-  const path = svg.append("path")
+  svg.append("path")
     .datum(data)
     .attr("fill", "none")
     .attr("stroke", "red")
     .attr("stroke-width", 2)
     .attr("d", line);
 
-  // Hiển thị đường ngang giá trị trung bình
-  svg.append("line")
-    .attr("x1", 0)
-    .attr("x2", width)
-    .attr("y1", yBar(avg))
-    .attr("y2", yBar(avg))
-    .attr("stroke", "red")
-    .attr("stroke-dasharray", "4") // Đường đứt nét
-    .attr("stroke-width", 2);
-
-  // Hiển thị nhãn giá trị trung bình
-  svg.append("text")
-    .attr("x", width - 10)
-    .attr("y", yBar(avg) - 10)
-    .attr("text-anchor", "end")
-    .style("font-size", "12px")
-    .style("fill", "red")
-    .text(`Avg: ${avg.toFixed(2)}`);
-
-  // Thêm các điểm trên đường
   svg.selectAll(".line-point")
     .data(data)
     .join("circle")
@@ -348,6 +355,23 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .attr("fill", "red")
     .append("title")
     .text(d => `${d.Brand} - ${lineKey}: ${d[lineKey].toLocaleString()}`);
+
+  svg.append("line")
+    .attr("x1", 0)
+    .attr("x2", width)
+    .attr("y1", yBar(avg))
+    .attr("y2", yBar(avg))
+    .attr("stroke", "red")
+    .attr("stroke-dasharray", "4")
+    .attr("stroke-width", 2);
+
+  svg.append("text")
+    .attr("x", width - 10)
+    .attr("y", yBar(avg) - 10)
+    .attr("text-anchor", "end")
+    .style("font-size", "12px")
+    .style("fill", "red")
+    .text(`Avg: ${avg.toFixed(2)}`);
 
   svg.append("text")
     .attr("x", width / 2)
@@ -364,4 +388,42 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .style("font-size", "16px")
     .style("font-weight", "bold")
     .text(lineTitle);
+
+  // Thêm bảng màu dọc
+  const legendHeight = 300;
+  const legendWidth = 20;
+
+  const legendScale = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d[barKey])])
+    .range([legendHeight, 0]);
+
+  const defs = svg.append("defs");
+  const gradient = defs.append("linearGradient")
+    .attr("id", "legend-gradient")
+    .attr("x1", "0%")
+    .attr("x2", "0%")
+    .attr("y1", "100%")
+    .attr("y2", "0%");
+
+  gradient.append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "#fdae61");
+  gradient.append("stop")
+    .attr("offset", "50%")
+    .attr("stop-color", "#ffffbf");
+  gradient.append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", "#2c7bb6");
+
+  const legend = svg.append("g")
+    .attr("transform", `translate(${width + 60}, 50)`);
+
+  legend.append("rect")
+    .attr("width", legendWidth)
+    .attr("height", legendHeight)
+    .style("fill", "url(#legend-gradient)");
+
+  legend.append("g")
+    .attr("transform", `translate(${legendWidth}, 0)`)
+    .call(d3.axisRight(legendScale).ticks(5));
 }
