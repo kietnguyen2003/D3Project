@@ -167,6 +167,14 @@ export async function drawBarChart(data, selector, key, title) {
     .nice()
     .range([height, 0]);
 
+  // Tính giá trị trung bình
+  const avg = d3.mean(data, d => d[key]);
+
+  // Tạo scale màu
+  const colorScale = d3.scaleLinear()
+    .domain([0, avg, d3.max(data, d => d[key])])
+    .range(["#fff7b0", "#ffcc00", "#b8860b"]); // Từ nhạt đến đậm (vàng)
+
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x))
@@ -184,7 +192,7 @@ export async function drawBarChart(data, selector, key, title) {
     .attr("y", height)
     .attr("width", x.bandwidth())
     .attr("height", 0)
-    .attr("fill", "steelblue")
+    .attr("fill", d => colorScale(d[key])) // Ánh xạ giá trị với màu sắc
     .transition()
     .duration(1000)
     .attr("y", d => y(d[key]))
@@ -197,6 +205,24 @@ export async function drawBarChart(data, selector, key, title) {
     .append("title") // Add title to each bar
     .text(d => `${d.Brand}: ${d[key].toLocaleString()}`);
 
+  // Hiển thị đường giá trị trung bình
+  svg.append("line")
+    .attr("x1", 0)
+    .attr("x2", width)
+    .attr("y1", y(avg))
+    .attr("y2", y(avg))
+    .attr("stroke", "red")
+    .attr("stroke-dasharray", "4") // Đường đứt nét
+    .attr("stroke-width", 2);
+
+  svg.append("text")
+    .attr("x", width - 10)
+    .attr("y", y(avg) - 10)
+    .attr("text-anchor", "end")
+    .style("font-size", "12px")
+    .style("fill", "red")
+    .text(`Avg: ${avg.toFixed(2)}`);
+
   svg.append("text")
     .attr("x", width / 2)
     .attr("y", -10)
@@ -205,6 +231,7 @@ export async function drawBarChart(data, selector, key, title) {
     .style("font-weight", "bold")
     .text(title);
 }
+
 
 
 
@@ -237,6 +264,14 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .nice()
     .range([height, 0]);
 
+  // Tính giá trị trung bình cho barKey
+  const avg = d3.mean(data, d => d[barKey]);
+
+  // Tạo scale màu cho thanh
+  const colorScale = d3.scaleLinear()
+    .domain([0, avg, d3.max(data, d => d[barKey])])
+    .range(["#fff7b0", "#ffcc00", "#b8860b"]); // Từ vàng nhạt đến vàng đậm
+
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
     .call(d3.axisBottom(x))
@@ -249,7 +284,7 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .attr("transform", `translate(${width},0)`)
     .call(d3.axisRight(yLine));
 
-  // Add bars
+  // Vẽ các thanh (bars)
   svg.selectAll(".bar")
     .data(data)
     .join("rect")
@@ -258,20 +293,20 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .attr("y", height)
     .attr("width", x.bandwidth())
     .attr("height", 0)
-    .attr("fill", "steelblue")
+    .attr("fill", d => colorScale(d[barKey])) // Ánh xạ màu dựa trên giá trị barKey
     .transition()
     .duration(1000)
     .attr("y", d => yBar(d[barKey]))
     .attr("height", d => height - yBar(d[barKey]));
 
-  // Add titles to bars
+  // Thêm title cho bars
   svg.selectAll(".bar")
     .data(data)
     .join("rect")
-    .append("title") // Add title to each bar
+    .append("title")
     .text(d => `${d.Brand} - ${barKey}: ${d[barKey].toLocaleString()}`);
 
-  // Add line
+  // Vẽ đường (line chart)
   const line = d3.line()
     .x(d => x(d.Brand) + x.bandwidth() / 2)
     .y(d => yLine(d[lineKey]));
@@ -283,7 +318,26 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .attr("stroke-width", 2)
     .attr("d", line);
 
-  // Add title to points on the line
+  // Hiển thị đường ngang giá trị trung bình
+  svg.append("line")
+    .attr("x1", 0)
+    .attr("x2", width)
+    .attr("y1", yBar(avg))
+    .attr("y2", yBar(avg))
+    .attr("stroke", "red")
+    .attr("stroke-dasharray", "4") // Đường đứt nét
+    .attr("stroke-width", 2);
+
+  // Hiển thị nhãn giá trị trung bình
+  svg.append("text")
+    .attr("x", width - 10)
+    .attr("y", yBar(avg) - 10)
+    .attr("text-anchor", "end")
+    .style("font-size", "12px")
+    .style("fill", "red")
+    .text(`Avg: ${avg.toFixed(2)}`);
+
+  // Thêm các điểm trên đường
   svg.selectAll(".line-point")
     .data(data)
     .join("circle")
@@ -292,7 +346,7 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .attr("cy", d => yLine(d[lineKey]))
     .attr("r", 4)
     .attr("fill", "red")
-    .append("title") // Add title to each point on the line
+    .append("title")
     .text(d => `${d.Brand} - ${lineKey}: ${d[lineKey].toLocaleString()}`);
 
   svg.append("text")
@@ -311,7 +365,3 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .style("font-weight", "bold")
     .text(lineTitle);
 }
-
-
-
-
