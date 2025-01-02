@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Trực quan hóa dữ liệu</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="index.css">
 </head>
 
@@ -18,12 +19,13 @@
           <label for="chart-options">Option 1</label>
           <select name="chart-options" id="chart-selector">
             <option value="all">All</option>
-            <option value="Rating">Rating</option>
+            <!-- <option value="Rating">Rating</option>
             <option value="Reviews">Reviews</option>
-            <option value="Stars">Stars</option>
+            <option value="Stars">Stars</option> -->
+            <option value="SLTT">Số lượng tương tác (Reviews + Rating)</option>
           </select>
         </div>
-        <div class="option2">
+        <!-- <div class="option2">
           <label for="chart-option2">Option 2</label>
           <select name="chart-options2" id="chart-selector2">
             <option value="all">All</option>
@@ -31,7 +33,7 @@
             <option value="Reviews">Reviews</option>
             <option value="Stars">Stars</option>
           </select>
-        </div>
+        </div> -->
       </div>
       <div class="chart" id="chart1"></div>
       <div class="comment" id="comment1">
@@ -69,50 +71,61 @@
   </div>
 
   <script type="module">
-    import { chart1BarLineChart, chart1BarChart, chart1TreeMap } from './index.js'; // Import các hàm vẽ
+    import { chart1BarLineChart, chart1BarChart, chart1TreeMap, processExcelWithD3 } from './index.js'; // Import các hàm vẽ
+
+    const data = await processExcelWithD3("check.xlsx");
+    //console.log("Dự liệu đang có: ", dataTest);
 
     const dataPath = "data.json"; // Đường dẫn đến file JSON chứa dữ liệu
+    console.log("Dữ liệu muốn:", data); // Kiểm tra dữ liệu
 
-    d3.json(dataPath).then(data => {
-      console.log("Dữ liệu:", data); // Kiểm tra dữ liệu
+    // Hàm cập nhật biểu đồ dựa trên hai selector
+    const updateChart = () => {
+      // Lấy giá trị từ hai selector
+      const option1 = d3.select("#chart-selector").property("value");
+      //const option2 = d3.select("#chart-selector2").property("value");
 
-      // Hàm cập nhật biểu đồ dựa trên hai selector
-      const updateChart = () => {
-        // Lấy giá trị từ hai selector
-        const option1 = d3.select("#chart-selector").property("value");
-        const option2 = d3.select("#chart-selector2").property("value");
+      // Xóa nội dung cũ trong chart1
+      d3.select("#chart1").selectAll("*").remove();
 
-        // Xóa nội dung cũ trong chart1
-        d3.select("#chart1").selectAll("*").remove();
+      if (option1 === "SLTT") {
+        const sltt = data.map(d => {
+          return {
+            Brand: d.Brand,
+            Rating: d.Rating,
+            Reviews: d.Reviews,
+            SLTT: d.Rating + d.Reviews
+          };
+        });
+        chart1BarChart(sltt, "#chart1", "SLTT", "Số lượng tương tác (Reviews + Rating)");
+      }
+      else if (option1 === "all") {
+        //else if (option1 === "all" || option2 === "all") {
+        // Nếu một trong hai selector chọn "All", hiển thị Treemap
+        chart1TreeMap(data, "#chart1");
+      }
+      /*} else if (option1 === option2) {
+        // Nếu cả hai selector chọn cùng một giá trị, hiển thị Bar Chart
+        chart1BarChart(data, "#chart1", option1, `Biểu đồ ${option1}`);
+      } else {
+        // Nếu hai selector chọn hai giá trị khác nhau, hiển thị Bar-Line Chart
+        chart1BarLineChart(
+          data,
+          "#chart1",
+          option1,
+          option2,
+          `Biểu đồ ${option1}`,
+          `Biểu đồ ${option2}`
+        );
+      }
+    };*/
+    };
+    // Lắng nghe sự kiện thay đổi trên cả hai selector
+    d3.select("#chart-selector").on("change", updateChart);
+    //d3.select("#chart-selector2").on("change", updateChart);
 
-        if (option1 === "all" || option2 === "all") {
-          // Nếu một trong hai selector chọn "All", hiển thị Treemap
-          chart1TreeMap(data, "#chart1");
-        } else if (option1 === option2) {
-          // Nếu cả hai selector chọn cùng một giá trị, hiển thị Bar Chart
-          chart1BarChart(data, "#chart1", option1, `Biểu đồ ${option1}`);
-        } else {
-          // Nếu hai selector chọn hai giá trị khác nhau, hiển thị Bar-Line Chart
-          chart1BarLineChart(
-            data,
-            "#chart1",
-            option1,
-            option2,
-            `Biểu đồ ${option1}`,
-            `Biểu đồ ${option2}`
-          );
-        }
-      };
-
-      // Lắng nghe sự kiện thay đổi trên cả hai selector
-      d3.select("#chart-selector").on("change", updateChart);
-      d3.select("#chart-selector2").on("change", updateChart);
-
-      // Hiển thị biểu đồ mặc định (Treemap)
-      updateChart();
-    }).catch(error => {
-      console.error("Lỗi khi đọc file JSON:", error);
-    });
+    // Hiển thị biểu đồ mặc định (Treemap)
+    updateChart();
   </script>
 
 

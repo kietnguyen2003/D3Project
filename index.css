@@ -97,7 +97,6 @@ select:focus {
 }
 
 .bar:hover {
-  fill: #007bff;
   cursor: pointer;
 }
 

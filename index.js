@@ -183,41 +183,35 @@ export async function chart1BarChart(data, selector, key, title) {
   svg.append("g").call(d3.axisLeft(y));
 
   svg.selectAll(".bar")
-    .data(data)
-    .join("rect")
-    .attr("class", "bar")
-    .attr("x", d => x(d.Brand))
-    .attr("y", height)
-    .attr("width", x.bandwidth())
-    .attr("height", 0)
-    .attr("fill", d => colorScale(d[key])) // Ánh xạ màu
-    .transition()
-    .duration(1000)
-    .attr("y", d => y(d[key]))
-    .attr("height", d => height - y(d[key]));
+  .data(data)
+  .join("rect")
+  .attr("class", "bar")
+  .attr("x", d => x(d.Brand))
+  .attr("y", height)
+  .attr("width", x.bandwidth())
+  .attr("height", 0)
+  .attr("fill", d => colorScale(d[key])) // Ánh xạ màu
+  .on("mouseover", function (event, d) {
+    d3.select(this)
+      .attr("stroke-width", 2)
+      .attr("opacity", 0.8); // Reduce opacity to emphasize
+  })
+  .on("mouseout", function () {
+    d3.select(this)
+      .attr("stroke", "none") // Remove stroke
+      .attr("opacity", 1); // Restore opacity
+  })
+  .transition()
+  .duration(1000)
+  .attr("y", d => y(d[key]))
+  .attr("height", d => height - y(d[key]));
+
 
   svg.selectAll(".bar")
     .data(data)
     .join("rect")
     .append("title")
-    .text(d => `${d.Brand}: ${d[key].toLocaleString()}`);
-
-  svg.append("line")
-    .attr("x1", 0)
-    .attr("x2", width)
-    .attr("y1", y(avg))
-    .attr("y2", y(avg))
-    .attr("stroke", "red")
-    .attr("stroke-dasharray", "4")
-    .attr("stroke-width", 2);
-
-  svg.append("text")
-    .attr("x", width - 10)
-    .attr("y", y(avg) - 10)
-    .attr("text-anchor", "end")
-    .style("font-size", "12px")
-    .style("fill", "red")
-    .text(`Avg: ${avg.toFixed(2)}`);
+    .text(d => `${d.Brand}: ${d[key].toLocaleString()}\nRating: ${d.Rating.toLocaleString()} Ratings\nReviews: ${d.Reviews.toLocaleString()} Reviews`);
 
   svg.append("text")
     .attr("x", width / 2)
@@ -265,6 +259,7 @@ export async function chart1BarChart(data, selector, key, title) {
     .attr("transform", `translate(${legendWidth}, 0)`)
     .call(d3.axisRight(legendScale).ticks(5));
 }
+
 
 export async function chart1BarLineChart(data, selector, barKey, lineKey, barTitle, lineTitle) {
   const margin = { top: 50, right: 100, bottom: 50, left: 80 };
@@ -438,3 +433,62 @@ export async function chart1BarLineChart(data, selector, barKey, lineKey, barTit
     .attr("transform", `translate(${legendWidth}, 0)`)
     .call(d3.axisRight(legendScale).ticks(5));
 }
+
+
+export const processExcelWithD3 = async (filePath) => {
+  try {
+    // Đọc file Excel
+    const response = await fetch(filePath);
+    const arrayBuffer = await response.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: "array" });
+
+    // Lấy sheet đầu tiên và chuyển sang JSON
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rawData = XLSX.utils.sheet_to_json(sheet);
+
+    // Lọc các cột cần thiết
+    const filteredData = rawData.map(d => ({
+      Brand: d.Brand,
+      Stars: parseFloat(d.Stars) || 0, // Chuyển sang số, mặc định là 0 nếu null
+      Rating: parseInt((d.Rating || "").replace(/,| Ratings/g, ""), 10) || 0, // Loại bỏ dấu phẩy và từ "Ratings"
+      Reviews: parseInt((d.Reviews || "").replace(/,| Reviews/g, ""), 10) || 0 // Loại bỏ dấu phẩy và từ "Reviews"
+    }));
+
+    // Nhóm dữ liệu theo tên sản phẩm và tính toán
+    const groupedData = d3.groups(filteredData, d => d.Brand);
+
+    const aggregatedData = groupedData.map(([Brand, values]) => ({
+      Brand,
+      Stars: parseFloat(d3.mean(values, d => d.Stars)?.toFixed(2)), // Trung bình Stars
+      Rating: d3.sum(values, d => d.Rating), // Tổng Rating
+      Reviews: d3.sum(values, d => d.Reviews) // Tổng Reviews
+    }));
+
+    // Sắp xếp dữ liệu theo mức độ tin cậy
+    const sortedData = aggregatedData.sort((a, b) => 
+      b.Stars - a.Stars || b.Rating - a.Rating || b.Reviews - a.Reviews
+    );
+
+    // Xuất dữ liệu ra file JSON
+    const jsonOutput = JSON.stringify(sortedData, null, 2);
+    console.log("JSON Output:", jsonOutput);
+
+    // Tạo và xuất file JSON (nếu cần)
+    const blob = new Blob([jsonOutput], { type: "application/json" });
+    const jsonUrl = URL.createObjectURL(blob);
+    console.log("JSON file URL:", jsonUrl);
+
+    // Xuất dữ liệu ra file CSV (nếu cần)
+    const csvOutput = d3.csvFormat(sortedData);
+    const csvBlob = new Blob([csvOutput], { type: "text/csv;charset=utf-8;" });
+    const csvUrl = URL.createObjectURL(csvBlob);
+    console.log("CSV file URL:", csvUrl);
+
+    // Trả về dữ liệu đã xử lý
+    return sortedData;
+  } catch (error) {
+    console.error("Lỗi khi xử lý file Excel:", error);
+    return [];
+  }
+};
