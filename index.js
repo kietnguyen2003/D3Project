@@ -1,4 +1,4 @@
-export async function drawTreemap(data, selector) {
+export async function chart1TreeMap(data, selector) {
   const width = 900;
   const height = 600;
 
@@ -143,7 +143,7 @@ legend.append("text")
   
 }
 
-export async function drawBarChart(data, selector, key, title) {
+export async function chart1BarChart(data, selector, key, title) {
   const margin = { top: 50, right: 80, bottom: 50, left: 80 };
   const width = 1000 - margin.left - margin.right;
   const height = 500 - margin.top - margin.bottom;
@@ -266,7 +266,7 @@ export async function drawBarChart(data, selector, key, title) {
     .call(d3.axisRight(legendScale).ticks(5));
 }
 
-export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle, lineTitle) {
+export async function chart1BarLineChart(data, selector, barKey, lineKey, barTitle, lineTitle) {
   const margin = { top: 50, right: 100, bottom: 50, left: 80 };
   const width = 1000 - margin.left - margin.right;
   const height = 500 - margin.top - margin.bottom;
@@ -334,16 +334,27 @@ export async function drawBarLineChart(data, selector, barKey, lineKey, barTitle
     .append("title")
     .text(d => `${d.Brand} - ${barKey}: ${d[barKey].toLocaleString()}`);
 
+  // Vẽ đường (line chart) với hiệu ứng transition
   const line = d3.line()
     .x(d => x(d.Brand) + x.bandwidth() / 2)
     .y(d => yLine(d[lineKey]));
 
-  svg.append("path")
+  const path = svg.append("path")
     .datum(data)
     .attr("fill", "none")
     .attr("stroke", "red")
     .attr("stroke-width", 2)
     .attr("d", line);
+
+  const totalLength = path.node().getTotalLength();
+
+  path
+    .attr("stroke-dasharray", `${totalLength} ${totalLength}`)
+    .attr("stroke-dashoffset", totalLength)
+    .transition()
+    .duration(1500)
+    .ease(d3.easeLinear)
+    .attr("stroke-dashoffset", 0);
 
   svg.selectAll(".line-point")
     .data(data)

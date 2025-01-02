@@ -69,7 +69,7 @@
   </div>
 
   <script type="module">
-    import { drawBarLineChart, drawBarChart, drawTreemap } from './index.js'; // Import các hàm vẽ
+    import { chart1BarLineChart, chart1BarChart, chart1TreeMap } from './index.js'; // Import các hàm vẽ
 
     const dataPath = "data.json"; // Đường dẫn đến file JSON chứa dữ liệu
 
@@ -87,13 +87,13 @@
 
         if (option1 === "all" || option2 === "all") {
           // Nếu một trong hai selector chọn "All", hiển thị Treemap
-          drawTreemap(data, "#chart1");
+          chart1TreeMap(data, "#chart1");
         } else if (option1 === option2) {
           // Nếu cả hai selector chọn cùng một giá trị, hiển thị Bar Chart
-          drawBarChart(data, "#chart1", option1, `Biểu đồ ${option1}`);
+          chart1BarChart(data, "#chart1", option1, `Biểu đồ ${option1}`);
         } else {
           // Nếu hai selector chọn hai giá trị khác nhau, hiển thị Bar-Line Chart
-          drawBarLineChart(
+          chart1BarLineChart(
             data,
             "#chart1",
             option1,
