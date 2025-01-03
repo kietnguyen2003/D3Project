@@ -50,6 +50,11 @@ select:focus {
   background-color: #e9ecef;
 }
 
+.idiom#i1 {
+  position: relative;
+
+}
+
 .chart {
   background-color: #f8f9fa;
   border: 1px solid #ddd;
@@ -58,8 +63,36 @@ select:focus {
   margin-bottom: 20px;
 }
 
+.filter {
+  position: absolute;
+  /* Định vị filter đè lên chart */
+  top: 60px;
+  /* Cách mép trên 10px */
+  right: 10px;
+  /* Cách mép phải 10px */
+  background-color: #ffffff;
+  /* Màu nền trắng cho filter */
+  padding: 10px;
+  /* Khoảng cách bên trong */
+  border: 1px solid #ddd;
+  /* Viền xám nhạt */
+  border-radius: 5px;
+  /* Bo góc nhẹ */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Đổ bóng nhẹ */
+  z-index: 10;
+  /* Đưa filter lên trên cùng */
+  width: 250px;
+  /* Độ rộng của filter */
+}
+
 .chart#chart1 {
-  height: 600px;
+  height: 700px;
+}
+
+
+.chart#chart2 {
+  height: 700px;
   padding-left: 40px;
 }
 

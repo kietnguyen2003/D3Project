@@ -14,28 +14,31 @@
   <div class="container">
     <div class="idiom" id="i1">
       <h1 class="title">1. Brand nhận được sự quan tâm của mọi người</h1>
-      <div class="options">
-        <div class="option1">
-          <label for="chart-options">Option 1</label>
-          <select name="chart-options" id="chart-selector">
-            <option value="all">All</option>
-            <!-- <option value="Rating">Rating</option>
-            <option value="Reviews">Reviews</option>
-            <option value="Stars">Stars</option> -->
-            <option value="SLTT">Số lượng tương tác (Reviews + Rating)</option>
-          </select>
+      <div class="filter">
+        <label>Filter by Classification:</label>
+        <div id="classificationFilter">
+          <label><input type="checkbox" value="All" checked> All</label><br>
+          <label><input type="checkbox" value="High popularity and highly rated"> High popularity and highly
+            rated</label><br>
+          <label><input type="checkbox" value="High popularity and moderate ratings"> High popularity and
+            moderate ratings</label><br>
+          <label><input type="checkbox" value="Medium popularity and highly rated"> Medium popularity and highly
+            rated</label><br>
+          <label><input type="checkbox" value="Medium popularity and moderate ratings"> Medium popularity and
+            moderate ratings</label><br>
+          <label><input type="checkbox" value="Low popularity and low ratings"> Low popularity and low
+            ratings</label><br>
+          <label><input type="checkbox" value="Lower popularity and moderate ratings"> Lower popularity and
+            moderate ratings</label><br>
+          <label><input type="checkbox" value="Lower popularity but highly rated"> Lower popularity but highly
+            rated</label><br>
+          <label><input type="checkbox" value="High popularity but low ratings"> High popularity but low
+            ratings</label><br>
         </div>
-        <!-- <div class="option2">
-          <label for="chart-option2">Option 2</label>
-          <select name="chart-options2" id="chart-selector2">
-            <option value="all">All</option>
-            <option value="Rating">Rating</option>
-            <option value="Reviews">Reviews</option>
-            <option value="Stars">Stars</option>
-          </select>
-        </div> -->
       </div>
-      <div class="chart" id="chart1"></div>
+
+      <div class="chart" id="chart1">
+      </div>
       <div class="comment" id="comment1">
         <label for="nhanxet">Nhận xét 1 </label>
         <div class="nhanxet"> Dựa trên dữ liệu, Apple là thương hiệu được quan tâm nhất với lượng đánh giá (Rating) cao
@@ -71,64 +74,61 @@
   </div>
 
   <script type="module">
-    import { chart1BarLineChart, chart1BarChart, chart1TreeMap, processExcelWithD3 } from './index.js'; // Import các hàm vẽ
+    import {
+      processCSVWithD3,
+      test
+    } from './index.js';
 
-    const data = await processExcelWithD3("check.xlsx");
-    //console.log("Dự liệu đang có: ", dataTest);
+    const data = await processCSVWithD3('chart_with_classification.csv');
 
-    const dataPath = "data.json"; // Đường dẫn đến file JSON chứa dữ liệu
-    console.log("Dữ liệu muốn:", data); // Kiểm tra dữ liệu
+    test(data, "#chart1");
 
-    // Hàm cập nhật biểu đồ dựa trên hai selector
-    const updateChart = () => {
-      // Lấy giá trị từ hai selector
-      const option1 = d3.select("#chart-selector").property("value");
-      //const option2 = d3.select("#chart-selector2").property("value");
+    document.querySelectorAll('#classificationFilter input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        const allCheckbox = document.querySelector('#classificationFilter input[value="All"]');
+        const otherCheckboxes = Array.from(document.querySelectorAll('#classificationFilter input[type="checkbox"]:not([value="All"])'));
 
-      // Xóa nội dung cũ trong chart1
-      d3.select("#chart1").selectAll("*").remove();
+        // Lấy danh sách các classification đã tick
+        const selectedClassifications = Array.from(document.querySelectorAll('#classificationFilter input[type="checkbox"]:checked'))
+          .map(cb => cb.value);
 
-      if (option1 === "SLTT") {
-        const sltt = data.map(d => {
-          return {
-            Brand: d.Brand,
-            Rating: d.Rating,
-            Reviews: d.Reviews,
-            SLTT: d.Rating + d.Reviews
-          };
-        });
-        chart1BarChart(sltt, "#chart1", "SLTT", "Số lượng tương tác (Reviews + Rating)");
-      }
-      else if (option1 === "all") {
-        //else if (option1 === "all" || option2 === "all") {
-        // Nếu một trong hai selector chọn "All", hiển thị Treemap
-        chart1TreeMap(data, "#chart1");
-      }
-      /*} else if (option1 === option2) {
-        // Nếu cả hai selector chọn cùng một giá trị, hiển thị Bar Chart
-        chart1BarChart(data, "#chart1", option1, `Biểu đồ ${option1}`);
-      } else {
-        // Nếu hai selector chọn hai giá trị khác nhau, hiển thị Bar-Line Chart
-        chart1BarLineChart(
-          data,
-          "#chart1",
-          option1,
-          option2,
-          `Biểu đồ ${option1}`,
-          `Biểu đồ ${option2}`
-        );
-      }
-    };*/
-    };
-    // Lắng nghe sự kiện thay đổi trên cả hai selector
-    d3.select("#chart-selector").on("change", updateChart);
-    //d3.select("#chart-selector2").on("change", updateChart);
+        // Nếu "All" được tick, bỏ tick tất cả các ô khác
+        if (checkbox.value === "All" && checkbox.checked) {
+          otherCheckboxes.forEach(cb => cb.checked = false);
+        }
 
-    // Hiển thị biểu đồ mặc định (Treemap)
-    updateChart();
+        // Nếu checkbox khác được tick, bỏ tick "All"
+        else if (selectedClassifications.length > 0 && selectedClassifications.includes(checkbox.value)) {
+          allCheckbox.checked = false;
+        }
+
+        // Nếu không checkbox nào được chọn, tự động bật "All"
+        if (selectedClassifications.length === 0) {
+          allCheckbox.checked = true;
+        }
+
+        // Lấy lại danh sách classification đã tick (sau khi cập nhật trạng thái checkbox)
+        const updatedClassifications = Array.from(document.querySelectorAll('#classificationFilter input[type="checkbox"]:checked'))
+          .map(cb => cb.value);
+
+        // Lọc dữ liệu dựa trên danh sách classification đã chọn
+        const filteredData = updatedClassifications.includes("All") ? data : data.filter(d => updatedClassifications.includes(d.classification));
+
+        // Xóa biểu đồ cũ
+        // Chỉ xóa các phần tử biểu đồ bên trong chart1, không xóa filter
+        d3.select("#chart1")
+          .selectAll("*") // Đảm bảo chỉ xóa các phần tử được vẽ bởi D3
+          .remove();
+
+        // Vẽ lại biểu đồ với dữ liệu đã lọc
+        test(filteredData, "#chart1");
+      });
+    });
+
+
   </script>
 
 
 </body>
 
-</html>
+</html>"

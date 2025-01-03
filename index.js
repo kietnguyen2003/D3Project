@@ -1,414 +1,123 @@
-export async function chart1TreeMap(data, selector) {
-  const width = 900;
+export const processCSVWithD3 = async (filePath) => {
+  try {
+    const rawData = await d3.csv(filePath);
+
+    const jsonOutput = JSON.stringify(rawData, null, 2);
+    const blob = new Blob([jsonOutput], { type: "application/json" });
+    const jsonUrl = URL.createObjectURL(blob);
+    console.log("JSON file URL:", jsonUrl);
+
+    const csvOutput = d3.csvFormat(rawData);
+    const csvBlob = new Blob([csvOutput], { type: "text/csv;charset=utf-8;" });
+    const csvUrl = URL.createObjectURL(csvBlob);
+    console.log("CSV file URL:", csvUrl);
+
+    return rawData;
+  } catch (error) {
+    console.error("Lỗi khi xử lý file CSV:", error);
+    return [];
+  }
+};
+
+export const test = async (data, selector) => {
+  const width = 800;
   const height = 600;
+  const margin = { top: 20, right: 300, bottom: 100, left: 120 };
 
-  // Convert data to hierarchical format
-  const hierarchy = d3.hierarchy({ children: data })
-      .sum(d => d.Reviews) // Use "Reviews" to size the rectangles
-      .sort((a, b) => b.value - a.value); // Sort by value
-
-  // Create a Treemap layout
-  const treemap = d3.treemap()
-      .size([width, height])
-      .padding(1);
-
-  treemap(hierarchy);
-
-  // Create an SVG element
-  const svg = d3.select(selector)
-      .append("svg")
-      .attr("width", width + 400)
-      .attr("height", height); // Add extra height for the legend
-
-  // Define a color scale for Stars
-  const colorScale = d3.scaleSequential()
-      .domain([3, 5]) // Assuming Stars range from 3 to 5
-      .interpolator(d3.interpolateBlues);
-
-  // Create Tooltip
-  const tooltip = d3.select(selector)
-      .append("div")
-      .style("position", "absolute")
-      .style("background-color", "white")
-      .style("border", "1px solid #ccc")
-      .style("padding", "10px")
-      .style("border-radius", "5px")
-      .style("box-shadow", "0px 0px 10px rgba(0,0,0,0.1)")
-      .style("pointer-events", "none")
-      .style("opacity", 0);
-
-  // Add rectangles for each node
-  const nodes = svg.selectAll("g")
-      .data(hierarchy.leaves())
-      .join("g")
-      .attr("transform", d => `translate(${d.x0},${d.y0})`); // Shift Treemap down
-
-  nodes.append("rect")
-      .attr("width", d => d.x1 - d.x0)
-      .attr("height", d => d.y1 - d.y0)
-      .attr("fill", d => colorScale(d.data.Stars)) // Color based on Stars using color scale
-      .attr("stroke", "white")
-      .on("mouseover", (event, d) => {
-        tooltip
-          .style("opacity", 1)
-          .html(`
-            <strong>Brand:</strong> ${d.data.Brand}<br>
-            <strong>Reviews:</strong> ${d.data.Reviews.toLocaleString()}<br>
-            <strong>Stars:</strong> ${d.data.Stars}
-          `)
-          .style("left", `${event.pageX + 10}px`)
-          .style("top", `${event.pageY - 30}px`);
-      })
-      .on("mousemove", (event) => {
-        tooltip
-          .style("left", `${event.pageX + 10}px`)
-          .style("top", `${event.pageY - 30}px`);
-      })
-      .on("mouseout", () => {
-        tooltip.style("opacity", 0);
-      });
-
-  // Add brand name and Reviews count inside each rectangle
-  nodes.append("text")
-      .attr("x", 5)
-      .attr("y", 20)
-      .style("font-size", "12px")
-      .style("font-weight", "bold")
-      .style("fill", "white")
-      .text(d => d.data.Brand);
-
-  nodes.append("text")
-      .attr("x", 5)
-      .attr("y", 40)
-      .style("font-size", "10px")
-      .style("fill", "white")
-      .text(d => d.data.Reviews.toLocaleString());
-
-  // Add color legend to the right (vertical gradient)
-const legendHeight = 300; // Chiều cao của chú thích
-const legendWidth = 20;   // Chiều rộng của chú thích
-
-const legend = svg.append("g")
-    .attr("transform", `translate(${width + 50}, ${(height - legendHeight) / 2})`); // Đặt ở bên phải biểu đồ
-
-// Gradient
-const gradient = svg.append("defs")
-    .append("linearGradient")
-    .attr("id", "legend-gradient")
-    .attr("x1", "0%")
-    .attr("x2", "0%")
-    .attr("y1", "100%") // Gradient từ trên xuống
-    .attr("y2", "0%");
-
-gradient.append("stop")
-    .attr("offset", "0%")
-    .attr("stop-color", colorScale(3)); // Start color (lowest Stars)
-
-gradient.append("stop")
-    .attr("offset", "100%")
-    .attr("stop-color", colorScale(5)); // End color (highest Stars)
-
-// Add legend rectangle
-legend.append("rect")
-    .attr("x", 0)
-    .attr("y", 0)
-    .attr("width", legendWidth)
-    .attr("height", legendHeight)
-    .style("fill", "url(#legend-gradient)");
-
-// Add legend labels
-legend.append("text")
-    .attr("x", legendWidth + 10) // Đặt bên phải chú thích
-    .attr("y", 5)
-    .style("text-anchor", "start")
-    .style("font-size", "12px")
-    .text("5"); // Giá trị cao nhất
-
-legend.append("text")
-    .attr("x", legendWidth + 10) // Đặt bên phải chú thích
-    .attr("y", legendHeight)
-    .style("text-anchor", "start")
-    .style("font-size", "12px")
-    .text("3"); // Giá trị thấp nhất
-
-legend.append("text")
-    .attr("x", legendWidth + 10)
-    .attr("y", legendHeight / 2)
-    .style("text-anchor", "start")
-    .style("font-size", "12px")
-    .style("font-weight", "bold")
-    .text("Stars");
-
-
-  
-}
-
-export async function chart1BarChart(data, selector, key, title) {
-  const margin = { top: 50, right: 80, bottom: 50, left: 80 };
-  const width = 1000 - margin.left - margin.right;
-  const height = 500 - margin.top - margin.bottom;
-
-  d3.select(selector).selectAll("*").remove();
-
-  const svg = d3.select(selector)
-    .append("svg")
-    .attr("width", width + margin.left + margin.right + 100) // Thêm không gian cho bảng màu
+  const svg = d3.select(selector).append("svg")
+    .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", `translate(${margin.left},${margin.top})`);
 
-  const x = d3.scaleBand()
+  if (!data || data.length === 0) {
+    svg.append("text")
+      .attr("x", width / 2)
+      .attr("y", height / 2)
+      .attr("text-anchor", "middle")
+      .style("font-size", "20px")
+      .style("fill", "gray")
+      .text("Không có dữ liệu tương ứng");
+    return;
+  }
+
+  const xScale = d3.scaleBand()
     .domain(data.map(d => d.Brand))
     .range([0, width])
-    .padding(0.1);
+    .padding(0.2);
 
-  const y = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d[key])])
+  const yScale = d3.scaleLinear()
+    .domain([0, d3.max(data, d => parseInt(d.total_ratings_reviews))])
     .nice()
     .range([height, 0]);
 
-  const avg = d3.mean(data, d => d[key]);
-
   const colorScale = d3.scaleLinear()
-    .domain([0, avg, d3.max(data, d => d[key])])
-    .range(["#fdae61", "#ffffbf", "#2c7bb6"]); // Gradient từ vàng -> xanh nhạt -> xanh đậm
+    .domain([3.6, 4.3, 5])
+    .range(["#fdae61", "#ffffbf", "#2b5c8a"]);
 
   svg.append("g")
     .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(x))
+    .call(d3.axisBottom(xScale))
     .selectAll("text")
     .attr("transform", "rotate(-45)")
     .style("text-anchor", "end");
 
-  svg.append("g").call(d3.axisLeft(y));
+  svg.append("g")
+    .call(d3.axisLeft(yScale));
 
-  svg.selectAll(".bar")
-  .data(data)
-  .join("rect")
-  .attr("class", "bar")
-  .attr("x", d => x(d.Brand))
-  .attr("y", height)
-  .attr("width", x.bandwidth())
-  .attr("height", 0)
-  .attr("fill", d => colorScale(d[key])) // Ánh xạ màu
-  .on("mouseover", function (event, d) {
-    d3.select(this)
-      .attr("stroke-width", 2)
-      .attr("opacity", 0.8); // Reduce opacity to emphasize
-  })
-  .on("mouseout", function () {
-    d3.select(this)
-      .attr("stroke", "none") // Remove stroke
-      .attr("opacity", 1); // Restore opacity
-  })
-  .transition()
-  .duration(1000)
-  .attr("y", d => y(d[key]))
-  .attr("height", d => height - y(d[key]));
-
+  const tooltip = d3.select("body")
+    .append("div")
+    .style("position", "absolute")
+    .style("background", "rgba(0, 0, 0, 0.7)")
+    .style("color", "white")
+    .style("padding", "5px 10px")
+    .style("border-radius", "5px")
+    .style("display", "none")
+    .style("pointer-events", "none");
 
   svg.selectAll(".bar")
     .data(data)
-    .join("rect")
-    .append("title")
-    .text(d => `${d.Brand}: ${d[key].toLocaleString()}\nRating: ${d.Rating.toLocaleString()} Ratings\nReviews: ${d.Reviews.toLocaleString()} Reviews`);
-
-  svg.append("text")
-    .attr("x", width / 2)
-    .attr("y", -10)
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .style("font-weight", "bold")
-    .text(title);
-
-  // Thêm bảng màu dọc
-  const legendHeight = 300;
-  const legendWidth = 20;
-
-  const legendScale = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d[key])])
-    .range([legendHeight, 0]);
-
-  const defs = svg.append("defs");
-  const gradient = defs.append("linearGradient")
-    .attr("id", "legend-gradient")
-    .attr("x1", "0%")
-    .attr("x2", "0%")
-    .attr("y1", "100%")
-    .attr("y2", "0%");
-
-  gradient.append("stop")
-    .attr("offset", "0%")
-    .attr("stop-color", "#fdae61"); // Màu vàng
-  gradient.append("stop")
-    .attr("offset", "50%")
-    .attr("stop-color", "#ffffbf"); // Màu xanh nhạt
-  gradient.append("stop")
-    .attr("offset", "100%")
-    .attr("stop-color", "#2c7bb6"); // Màu xanh đậm
-
-  const legend = svg.append("g")
-    .attr("transform", `translate(${width + 30}, 50)`);
-
-  legend.append("rect")
-    .attr("width", legendWidth)
-    .attr("height", legendHeight)
-    .style("fill", "url(#legend-gradient)");
-
-  legend.append("g")
-    .attr("transform", `translate(${legendWidth}, 0)`)
-    .call(d3.axisRight(legendScale).ticks(5));
-}
-
-
-export async function chart1BarLineChart(data, selector, barKey, lineKey, barTitle, lineTitle) {
-  const margin = { top: 50, right: 100, bottom: 50, left: 80 };
-  const width = 1000 - margin.left - margin.right;
-  const height = 500 - margin.top - margin.bottom;
-
-  d3.select(selector).selectAll("*").remove();
-
-  const svg = d3.select(selector)
-    .append("svg")
-    .attr("width", width + margin.left + margin.right + 200) // Thêm không gian cho bảng màu
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", `translate(${margin.left},${margin.top})`);
-
-  const x = d3.scaleBand()
-    .domain(data.map(d => d.Brand))
-    .range([0, width])
-    .padding(0.1);
-
-  const yBar = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d[barKey])])
-    .nice()
-    .range([height, 0]);
-
-  const yLine = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d[lineKey])])
-    .nice()
-    .range([height, 0]);
-
-  const avg = d3.mean(data, d => d[barKey]);
-
-  const colorScale = d3.scaleLinear()
-    .domain([0, avg, d3.max(data, d => d[barKey])])
-    .range(["#fdae61", "#ffffbf", "#2c7bb6"]); // Gradient từ vàng nhạt -> xanh nhạt -> xanh đậm
-
-  svg.append("g")
-    .attr("transform", `translate(0,${height})`)
-    .call(d3.axisBottom(x))
-    .selectAll("text")
-    .attr("transform", "rotate(-45)")
-    .style("text-anchor", "end");
-
-  svg.append("g").call(d3.axisLeft(yBar));
-  svg.append("g")
-    .attr("transform", `translate(${width},0)`)
-    .call(d3.axisRight(yLine));
-
-  // Vẽ các thanh (bars)
-  svg.selectAll(".bar")
-    .data(data)
-    .join("rect")
+    .enter().append("rect")
     .attr("class", "bar")
-    .attr("x", d => x(d.Brand))
+    .attr("x", d => xScale(d.Brand))
     .attr("y", height)
-    .attr("width", x.bandwidth())
+    .attr("width", xScale.bandwidth())
     .attr("height", 0)
-    .attr("fill", d => colorScale(d[barKey]))
+    .style("fill", d => colorScale(parseFloat(d.Stars)))
+    .on("mouseover", (event, d) => {
+      tooltip.style("display", "block")
+        .html(`
+          <strong>Brand:</strong> ${d.Brand}<br>
+          <strong>Stars:</strong> ${parseFloat(d.Stars).toFixed(2)}<br>
+          <strong>Ratings:</strong> ${parseInt(d.Rating).toLocaleString()}<br>
+          <strong>Reviews:</strong> ${parseInt(d.Reviews).toLocaleString()}<br>
+        `);
+    })
+    .on("mousemove", (event) => {
+      tooltip.style("top", `${event.pageY + 10}px`)
+        .style("left", `${event.pageX + 10}px`);
+    })
+    .on("mouseout", () => {
+      tooltip.style("display", "none");
+    })
     .transition()
     .duration(1000)
-    .attr("y", d => yBar(d[barKey]))
-    .attr("height", d => height - yBar(d[barKey]));
+    .attr("y", d => yScale(parseInt(d.total_ratings_reviews)))
+    .attr("height", d => height - yScale(parseInt(d.total_ratings_reviews)));
 
-  svg.selectAll(".bar")
-    .data(data)
-    .join("rect")
-    .append("title")
-    .text(d => `${d.Brand} - ${barKey}: ${d[barKey].toLocaleString()}`);
-
-  // Vẽ đường (line chart) với hiệu ứng transition
-  const line = d3.line()
-    .x(d => x(d.Brand) + x.bandwidth() / 2)
-    .y(d => yLine(d[lineKey]));
-
-  const path = svg.append("path")
-    .datum(data)
-    .attr("fill", "none")
-    .attr("stroke", "red")
-    .attr("stroke-width", 2)
-    .attr("d", line);
-
-  const totalLength = path.node().getTotalLength();
-
-  path
-    .attr("stroke-dasharray", `${totalLength} ${totalLength}`)
-    .attr("stroke-dashoffset", totalLength)
-    .transition()
-    .duration(1500)
-    .ease(d3.easeLinear)
-    .attr("stroke-dashoffset", 0);
-
-  svg.selectAll(".line-point")
-    .data(data)
-    .join("circle")
-    .attr("class", "line-point")
-    .attr("cx", d => x(d.Brand) + x.bandwidth() / 2)
-    .attr("cy", d => yLine(d[lineKey]))
-    .attr("r", 4)
-    .attr("fill", "red")
-    .append("title")
-    .text(d => `${d.Brand} - ${lineKey}: ${d[lineKey].toLocaleString()}`);
-
-  svg.append("line")
-    .attr("x1", 0)
-    .attr("x2", width)
-    .attr("y1", yBar(avg))
-    .attr("y2", yBar(avg))
-    .attr("stroke", "red")
-    .attr("stroke-dasharray", "4")
-    .attr("stroke-width", 2);
-
-  svg.append("text")
-    .attr("x", width - 10)
-    .attr("y", yBar(avg) - 10)
-    .attr("text-anchor", "end")
-    .style("font-size", "12px")
-    .style("fill", "red")
-    .text(`Avg: ${avg.toFixed(2)}`);
-
-  svg.append("text")
-    .attr("x", width / 2)
-    .attr("y", -20)
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .style("font-weight", "bold")
-    .text(barTitle);
-
-  svg.append("text")
-    .attr("x", width + 20)
-    .attr("y", -20)
-    .attr("text-anchor", "middle")
-    .style("font-size", "16px")
-    .style("font-weight", "bold")
-    .text(lineTitle);
-
-  // Thêm bảng màu dọc
-  const legendHeight = 300;
-  const legendWidth = 20;
+  const legendHeight = 20;
+  const legendWidth = 300;
 
   const legendScale = d3.scaleLinear()
-    .domain([0, d3.max(data, d => d[barKey])])
-    .range([legendHeight, 0]);
+    .domain([3.6, 5])
+    .range([0, legendWidth]);
 
   const defs = svg.append("defs");
   const gradient = defs.append("linearGradient")
     .attr("id", "legend-gradient")
     .attr("x1", "0%")
-    .attr("x2", "0%")
-    .attr("y1", "100%")
+    .attr("x2", "100%")
+    .attr("y1", "0%")
     .attr("y2", "0%");
 
   gradient.append("stop")
@@ -419,10 +128,10 @@ export async function chart1BarLineChart(data, selector, barKey, lineKey, barTit
     .attr("stop-color", "#ffffbf");
   gradient.append("stop")
     .attr("offset", "100%")
-    .attr("stop-color", "#2c7bb6");
+    .attr("stop-color", "#2b5c8a");
 
   const legend = svg.append("g")
-    .attr("transform", `translate(${width + 60}, 50)`);
+    .attr("transform", `translate(${width + 50}, ${height - 250})`);
 
   legend.append("rect")
     .attr("width", legendWidth)
@@ -430,65 +139,6 @@ export async function chart1BarLineChart(data, selector, barKey, lineKey, barTit
     .style("fill", "url(#legend-gradient)");
 
   legend.append("g")
-    .attr("transform", `translate(${legendWidth}, 0)`)
-    .call(d3.axisRight(legendScale).ticks(5));
-}
-
-
-export const processExcelWithD3 = async (filePath) => {
-  try {
-    // Đọc file Excel
-    const response = await fetch(filePath);
-    const arrayBuffer = await response.arrayBuffer();
-    const workbook = XLSX.read(arrayBuffer, { type: "array" });
-
-    // Lấy sheet đầu tiên và chuyển sang JSON
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const rawData = XLSX.utils.sheet_to_json(sheet);
-
-    // Lọc các cột cần thiết
-    const filteredData = rawData.map(d => ({
-      Brand: d.Brand,
-      Stars: parseFloat(d.Stars) || 0, // Chuyển sang số, mặc định là 0 nếu null
-      Rating: parseInt((d.Rating || "").replace(/,| Ratings/g, ""), 10) || 0, // Loại bỏ dấu phẩy và từ "Ratings"
-      Reviews: parseInt((d.Reviews || "").replace(/,| Reviews/g, ""), 10) || 0 // Loại bỏ dấu phẩy và từ "Reviews"
-    }));
-
-    // Nhóm dữ liệu theo tên sản phẩm và tính toán
-    const groupedData = d3.groups(filteredData, d => d.Brand);
-
-    const aggregatedData = groupedData.map(([Brand, values]) => ({
-      Brand,
-      Stars: parseFloat(d3.mean(values, d => d.Stars)?.toFixed(2)), // Trung bình Stars
-      Rating: d3.sum(values, d => d.Rating), // Tổng Rating
-      Reviews: d3.sum(values, d => d.Reviews) // Tổng Reviews
-    }));
-
-    // Sắp xếp dữ liệu theo mức độ tin cậy
-    const sortedData = aggregatedData.sort((a, b) => 
-      b.Stars - a.Stars || b.Rating - a.Rating || b.Reviews - a.Reviews
-    );
-
-    // Xuất dữ liệu ra file JSON
-    const jsonOutput = JSON.stringify(sortedData, null, 2);
-    console.log("JSON Output:", jsonOutput);
-
-    // Tạo và xuất file JSON (nếu cần)
-    const blob = new Blob([jsonOutput], { type: "application/json" });
-    const jsonUrl = URL.createObjectURL(blob);
-    console.log("JSON file URL:", jsonUrl);
-
-    // Xuất dữ liệu ra file CSV (nếu cần)
-    const csvOutput = d3.csvFormat(sortedData);
-    const csvBlob = new Blob([csvOutput], { type: "text/csv;charset=utf-8;" });
-    const csvUrl = URL.createObjectURL(csvBlob);
-    console.log("CSV file URL:", csvUrl);
-
-    // Trả về dữ liệu đã xử lý
-    return sortedData;
-  } catch (error) {
-    console.error("Lỗi khi xử lý file Excel:", error);
-    return [];
-  }
+    .attr("transform", `translate(0, ${legendHeight})`)
+    .call(d3.axisBottom(legendScale).ticks(5));
 };
