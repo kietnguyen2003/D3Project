@@ -50,7 +50,8 @@ select:focus {
   background-color: #e9ecef;
 }
 
-.idiom#i1 {
+.idiom#i1,
+.idiom#i2 {
   position: relative;
 
 }
@@ -63,7 +64,8 @@ select:focus {
   margin-bottom: 20px;
 }
 
-.filter {
+.filter,
+.filter2 {
   position: absolute;
   /* Định vị filter đè lên chart */
   top: 60px;
@@ -92,7 +94,7 @@ select:focus {
 
 
 .chart#chart2 {
-  height: 700px;
+  height: 750px;
   padding-left: 40px;
 }
 

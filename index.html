@@ -51,10 +51,24 @@
       </div>
     </div>
     <div class="idiom" id="i2">
+      <h1 class="title">2. Cấu hình điện thoại được quan tâm (RAM (GB), Storage (GB))</h1>
+      <div class="filter2">
+        <label>Filter by:</label>
+        <div id="configFilter">
+          <label><input type="checkbox" value="Avg Price"> Avg Price</label><br>
+          <label><input type="checkbox" value="Product Count" checked> Product Count</label><br>
+        </div>
+      </div>
       <div class="chart" id="chart2"></div>
       <div class="comment" id="comment2">
         <label for="nhanxet">Nhận xét 2 </label>
-        <div class="nhanxet"></div>
+        <div class="nhanxet">Dữ liệu cho thấy các sản phẩm có cấu hình cao hơn như RAM từ 8GB trở lên và dung lượng lưu
+          trữ lớn (256GB hoặc 512GB) thường có giá trung bình cao hơn và nhận được nhiều đánh giá hơn, điều này phản ánh
+          sự ưu tiên của người dùng đối với các thiết bị cao cấp. Tuy nhiên, số lượng sản phẩm lớn nhất lại tập trung ở
+          các cấu hình trung bình như 4GB hoặc 6GB RAM với 128GB lưu trữ, cho thấy đây là phân khúc phổ biến được các
+          nhà sản xuất tối ưu hóa. Cấu hình thấp hơn như 0GB RAM và lưu trữ nhỏ hơn 32GB không chỉ có giá thấp mà còn ít
+          nhận được sự quan tâm và đánh giá từ người dùng, thể hiện xu hướng tập trung vào hiệu năng và trải nghiệm tốt
+          hơn trong phân khúc cao hơn.</div>
       </div>
     </div>
     <div class="idiom" id="i3">
@@ -77,11 +91,21 @@
     import {
       processCSVWithD3,
       test
-    } from './index.js';
+    } from './js/chart1.js';
 
-    const data = await processCSVWithD3('chart_with_classification.csv');
+    import {
+      process2CSVWithD3,
+      renderProductCountHeatmap,
+      renderAvgPriceHeatmap
+    } from './js/chart2.js';
+
+
+    //Chart1
+    const data = await processCSVWithD3('../csv/chart1_with_classification.csv');
+    const data2 = await process2CSVWithD3('../csv/chart2_with_config.csv');
 
     test(data, "#chart1");
+    renderProductCountHeatmap(data2, "#chart2");
 
     document.querySelectorAll('#classificationFilter input[type="checkbox"]').forEach(checkbox => {
       checkbox.addEventListener('change', () => {
@@ -123,7 +147,43 @@
         // Vẽ lại biểu đồ với dữ liệu đã lọc
         test(filteredData, "#chart1");
       });
+
+
+      // Chart2
     });
+
+    document.querySelectorAll('#configFilter input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', (event) => {
+        const clickedCheckbox = event.target;
+
+        // Hủy tick các checkbox khác nếu checkbox hiện tại được chọn
+        if (clickedCheckbox.checked) {
+          document.querySelectorAll('#configFilter input[type="checkbox"]').forEach(cb => {
+            if (cb !== clickedCheckbox) {
+              cb.checked = false;
+            }
+          });
+        }
+
+        // Lấy checkbox đã chọn (nếu có)
+        const selectedFilter = document.querySelector('#configFilter input[type="checkbox"]:checked');
+
+        let filteredData2 = [...data2]; // Sao chép dữ liệu gốc để lọc
+
+        if (selectedFilter) {
+          if (selectedFilter.value === 'Avg Price') {
+            // Xóa biểu đồ cũ
+            d3.select("#chart2").selectAll("*").remove();
+            renderAvgPriceHeatmap(filteredData2, "#chart2");
+          } else {
+            // Xóa biểu đồ cũ
+            d3.select("#chart2").selectAll("*").remove();
+            renderProductCountHeatmap(filteredData2, "#chart2");
+          }
+        }
+      });
+    });
+
 
 
   </script>

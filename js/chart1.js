@@ -105,7 +105,7 @@ export const test = async (data, selector) => {
     .attr("y", d => yScale(parseInt(d.total_ratings_reviews)))
     .attr("height", d => height - yScale(parseInt(d.total_ratings_reviews)));
 
-  const legendHeight = 20;
+  const legendHeight = 10;
   const legendWidth = 300;
 
   const legendScale = d3.scaleLinear()
@@ -131,7 +131,7 @@ export const test = async (data, selector) => {
     .attr("stop-color", "#2b5c8a");
 
   const legend = svg.append("g")
-    .attr("transform", `translate(${width + 50}, ${height - 250})`);
+    .attr("transform", `translate(${width - 35}, ${height - 250})`);
 
   legend.append("rect")
     .attr("width", legendWidth)

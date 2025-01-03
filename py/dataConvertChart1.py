@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Đọc dữ liệu từ file Excel
-df = pd.read_excel('check.xlsx')
+df = pd.read_excel('../baseDB/check.xlsx')
 
 # Lọc các cột cần thiết
 filtered_data = df[['Stars','Rating', 'Reviews', 'Brand']].copy()
@@ -71,14 +71,9 @@ aggregated_data['classification'] = aggregated_data.apply(classify_brand, axis=1
 # Sắp xếp dữ liệu theo mức độ tin cậy
 sorted_data = aggregated_data.sort_values(by=['Stars', 'Rating', 'Reviews'], ascending=False)
 
-# Xuất dữ liệu ra file JSON
-output_file_path = 'data_with_classification.json'
-sorted_data.to_json(output_file_path, orient='records', force_ascii=False)
-
 # Xuất thêm dữ liệu ra file CSV
 csv_file_path = 'chart_with_classification.csv'
 sorted_data.to_csv(csv_file_path, index=False, encoding='utf-8-sig')
 
 # Kết quả
-print(f"JSON file exported to: {output_file_path}")
 print(f"CSV file exported to: {csv_file_path}")
