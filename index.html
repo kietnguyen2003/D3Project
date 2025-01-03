@@ -52,13 +52,6 @@
     </div>
     <div class="idiom" id="i2">
       <h1 class="title">2. Cấu hình điện thoại được quan tâm (RAM (GB), Storage (GB))</h1>
-      <div class="filter2">
-        <label>Filter by:</label>
-        <div id="configFilter">
-          <label><input type="checkbox" value="Avg Price"> Avg Price</label><br>
-          <label><input type="checkbox" value="Product Count" checked> Product Count</label><br>
-        </div>
-      </div>
       <div class="chart" id="chart2"></div>
       <div class="comment" id="comment2">
         <label for="nhanxet">Nhận xét 2 </label>
@@ -152,37 +145,6 @@
       // Chart2
     });
 
-    document.querySelectorAll('#configFilter input[type="checkbox"]').forEach(checkbox => {
-      checkbox.addEventListener('change', (event) => {
-        const clickedCheckbox = event.target;
-
-        // Hủy tick các checkbox khác nếu checkbox hiện tại được chọn
-        if (clickedCheckbox.checked) {
-          document.querySelectorAll('#configFilter input[type="checkbox"]').forEach(cb => {
-            if (cb !== clickedCheckbox) {
-              cb.checked = false;
-            }
-          });
-        }
-
-        // Lấy checkbox đã chọn (nếu có)
-        const selectedFilter = document.querySelector('#configFilter input[type="checkbox"]:checked');
-
-        let filteredData2 = [...data2]; // Sao chép dữ liệu gốc để lọc
-
-        if (selectedFilter) {
-          if (selectedFilter.value === 'Avg Price') {
-            // Xóa biểu đồ cũ
-            d3.select("#chart2").selectAll("*").remove();
-            renderAvgPriceHeatmap(filteredData2, "#chart2");
-          } else {
-            // Xóa biểu đồ cũ
-            d3.select("#chart2").selectAll("*").remove();
-            renderProductCountHeatmap(filteredData2, "#chart2");
-          }
-        }
-      });
-    });
 
 
 
