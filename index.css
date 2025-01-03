@@ -98,6 +98,16 @@ select:focus {
   padding-left: 40px;
 }
 
+.chart#chart3 {
+  height: 750px;
+  padding-left: 40px;
+}
+
+.chart#chart4 {
+  height: 650px;
+  padding-left: 40px;
+}
+
 .comment {
   padding: 15px;
   background-color: #e9ecef;

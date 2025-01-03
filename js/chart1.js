@@ -52,7 +52,7 @@ export const test = async (data, selector) => {
     .range([height, 0]);
 
   const colorScale = d3.scaleLinear()
-    .domain([3.6, 4.3, 5])
+    .domain([3.6, 4.1, 4.6])
     .range(["#fdae61", "#ffffbf", "#2b5c8a"]);
 
   svg.append("g")
@@ -84,6 +84,16 @@ export const test = async (data, selector) => {
     .style("font-size", "16px")
     .style("font-weight", "bold")
     .text("BRAND");
+
+  // Thêm tiêu đề cho SVG
+  svg.append("text")
+    .attr("x", (width + margin.left + margin.right) / 2 - margin.left) // Căn giữa theo chiều ngang
+    .attr("y", -margin.top + 90) // Đặt tiêu đề ở trên cùng
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("font-weight", "bold")
+    .text("Bar Chart of Ratings and Reviews by Brand"); // Nội dung tiêu đề
+  
 
   const tooltip = d3.select("body")
     .append("div")
@@ -129,7 +139,7 @@ export const test = async (data, selector) => {
   const legendWidth = 300;
 
   const legendScale = d3.scaleLinear()
-    .domain([3.6, 5])
+    .domain([3.6, 4.6])
     .range([0, legendWidth]);
 
   const defs = svg.append("defs");

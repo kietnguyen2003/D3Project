@@ -37,6 +37,7 @@ export const renderProductCountHeatmap = (data, selector) => {
   const xValues = [...new Set(data.map(d => +d['RAM (GB)']))];
 
   const max = d3.max(data, d => +d['Product Count']);
+  
   const svg = d3.select(selector)
     .append("svg")
     .attr("width", width + margin.left + margin.right)
@@ -115,6 +116,17 @@ export const renderProductCountHeatmap = (data, selector) => {
     .style("font-size", "16px")
     .style("font-weight", "bold")
     .text("Storage (GB)");
+
+  
+  // Thêm tiêu đề cho SVG
+  svg.append("text")
+    .attr("x", (width + margin.left + margin.right) / 2 - margin.left) // Căn giữa theo chiều ngang
+    .attr("y", -margin.top / 2) // Đặt tiêu đề ở trên cùng
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("font-weight", "bold")
+    .text("Heatmap of Product Count by RAM and Storage"); // Tiêu đề
+
 
   const legendWidth = 200;
   const legendHeight = 10;

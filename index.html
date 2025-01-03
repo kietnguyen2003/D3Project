@@ -65,17 +65,46 @@
       </div>
     </div>
     <div class="idiom" id="i3">
+      <h1 class="title">3. So sánh giá cả trung bình giữa các phân loại nhãn dán</h1>
       <div class="chart" id="chart3"></div>
       <div class="comment" id="comment3">
         <label for="nhanxet">Nhận xét 3 </label>
-        <div class="nhanxet"></div>
+        <div class="nhanxet">Dựa trên dữ liệu, các sản phẩm có độ phổ biến cao và đánh giá tốt thường có giá trị thực tế
+          cao và mức giảm giá ít (ví dụ: "High popularity and highly rated" với giá 54,355.42). Ngược lại, các sản phẩm
+          đánh giá thấp nhưng phổ biến cao có giá trị thực tế thấp và mức giảm giá lớn. Các sản phẩm đánh giá cao nhưng
+          ít phổ biến có giá trị thực tế cao nhưng giảm giá mạnh, trong khi các sản phẩm đánh giá thấp và phổ biến trung
+          bình có giá thấp và ít giảm giá. Nhìn chung, giá cả phản ánh sự kết hợp giữa độ phổ biến và chất lượng của sản
+          phẩm.</div>
       </div>
     </div>
     <div class="idiom" id="i4">
-      <div class="chart" id="chart4"></div>
+      <h1 class="title">4. Phân phối kích thước màn hình phổ biến của từng thương hiệu</h1>
+      <div class="options">
+        <label for="brand">Chọn thương hiệu:</label>
+        <select name="brand" id="brandSelect">
+          <option value="Apple">Apple</option>
+          <option value="vivo">vivo</option>
+          <option value="Motorola">Motorola</option>
+          <option value="realme">realme</option>
+          <option value="SAMSUNG">SAMSUNG</option>
+          <option value="Google">Google</option>
+          <option value="LAVA">LAVA</option>
+          <option value="itel">itel</option>
+          <option value="I">I</option>
+          <option value="Vox">Vox</option>
+          <option value="KARBONN">KARBONN</option>
+        </select>
+      </div>
+      <div class="chart" id="chart4">
+      </div>
       <div class="comment" id="comment4">
         <label for="nhanxet">Nhận xét 4 </label>
-        <div class="nhanxet"></div>
+        <div class="nhanxet">Dựa trên dữ liệu, các thương hiệu lớn như Apple, Samsung, OPPO, Redmi, POCO và Realme chủ
+          yếu cung cấp sản phẩm với kích thước màn hình từ 6.5 inch đến 6.7 inch, đây là các kích thước phổ biến trên
+          thị trường. Ví dụ, Samsung có nhiều sản phẩm với 6.5 inch và 6.6 inch, trong khi Redmi và POCO chủ yếu có 6.67
+          inch và 6.74 inch. Các thương hiệu nhỏ như Kechaoda và I lại tập trung vào các kích thước nhỏ hơn như 1.77
+          inch và 2.4 inch. Nhìn chung, các thương hiệu lớn chọn kích thước màn hình vừa và lớn, trong khi các thương
+          hiệu nhỏ nhắm đến nhu cầu điện thoại cơ bản.</div>
       </div>
     </div>
   </div>
@@ -92,13 +121,29 @@
 
     } from './js/chart2.js';
 
+    import {
+      process3CSVWithD3,
+      test3
+    } from './js/chart3.js';
+
+    import {
+      process4CSVWithD3,
+      drawTreemap
+    } from './js/chart4.js';
+
 
     //Chart1
     const data = await processCSVWithD3('../csv/chart1_with_classification.csv');
     const data2 = await process2CSVWithD3('../csv/chart2_with_config.csv');
+    const data3 = await process3CSVWithD3('../csv/chart3_with_avg_values.csv');
+    const data4 = await process4CSVWithD3('../csv/chart4_with_brand_display_counts.csv');
 
     test(data, "#chart1");
     renderProductCountHeatmap(data2, "#chart2");
+    test3(data3, "#chart3");
+    drawTreemap(data4, "#chart4", "Apple");
+
+
 
     document.querySelectorAll('#classificationFilter input[type="checkbox"]').forEach(checkbox => {
       checkbox.addEventListener('change', () => {
@@ -145,7 +190,33 @@
       // Chart2
     });
 
+    // Lấy danh sách các thương hiệu duy nhất từ data4
+    const uniqueBrands = [...new Set(data4.map(d => d.brand))];
 
+    // Tham chiếu đến dropdown menu
+    const brandSelect = document.getElementById('brandSelect');
+
+    // Xóa tất cả các options cũ (nếu có)
+    brandSelect.innerHTML = "";
+
+    // Thêm các options vào dropdown dựa trên danh sách thương hiệu duy nhất
+    uniqueBrands.forEach(brand => {
+      const option = document.createElement('option');
+      option.value = brand;
+      option.textContent = brand;
+      brandSelect.appendChild(option);
+    });
+
+    // Thêm sự kiện lắng nghe khi chọn một thương hiệu từ dropdown
+    brandSelect.addEventListener('change', (event) => {
+      const selectedBrand = event.target.value;
+
+      // Xóa biểu đồ cũ
+      d3.select("#chart4").selectAll("*").remove();
+
+      // Vẽ lại biểu đồ TreeMap với thương hiệu được chọn
+      drawTreemap(data4, "#chart4", selectedBrand);
+    });
 
 
   </script>
