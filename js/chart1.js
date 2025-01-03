@@ -65,6 +65,26 @@ export const test = async (data, selector) => {
   svg.append("g")
     .call(d3.axisLeft(yScale));
 
+  // Add Y-axis label
+  svg.append("text")
+    .attr("transform", "rotate(-90)") // Rotate the label for the Y-axis
+    .attr("y", 0 - margin.left + 20)  // Adjust position of the label
+    .attr("x", 0 - height / 2)        // Adjust position of the label
+    .attr("dy", "1em")
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("font-weight", "bold")
+    .text("RATINGS + REVIEW");
+
+  // Add X-axis label
+  svg.append("text")
+    .attr("x", width / 2)              // Center horizontally
+    .attr("y", height + margin.bottom - 10) // Adjust position below the X-axis
+    .attr("text-anchor", "middle")
+    .style("font-size", "16px")
+    .style("font-weight", "bold")
+    .text("BRAND");
+
   const tooltip = d3.select("body")
     .append("div")
     .style("position", "absolute")
@@ -141,4 +161,11 @@ export const test = async (data, selector) => {
   legend.append("g")
     .attr("transform", `translate(0, ${legendHeight})`)
     .call(d3.axisBottom(legendScale).ticks(5));
+
+  legend.append("text")
+    .attr("x", legendWidth / 2)
+    .attr("y", legendHeight + 40) // Position below the legend
+    .attr("text-anchor", "middle")
+    .style("font-size", "12px")
+    .text("Stars");
 };
